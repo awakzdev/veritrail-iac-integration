@@ -13,7 +13,7 @@ dependency "organization" {
 # This stack runs Terraform in the environment account by generating a provider
 # that assumes the Organization-created role. Using top-level `iam_role` cannot
 # reference dependency outputs because Terragrunt evaluates it too early.
-generate "provider" {
+generate "env_provider" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
 
