@@ -11,14 +11,17 @@ terraform {
 }
 
 inputs = {
-  environment                    = local.env.locals.environment
+  environment                    = "management"
   name_prefix                    = local.env.locals.name_prefix
+  resource_names                 = {
+    readonly_role         = "${local.env.locals.name_prefix}-management-readonly"
+    security_audit_role   = "${local.env.locals.name_prefix}-management-security-audit"
+    cost_guardrail_policy = "${local.env.locals.name_prefix}-management-cost-guardrail"
+  }
   create_account_password_policy = true
   create_account_alias           = local.env.locals.create_account_alias
   account_alias                  = local.env.locals.account_alias
   trusted_aws_principal_arns     = []
-  create_readonly_role           = false
-  create_security_audit_role    = false
   attach_cost_guardrail_to_roles = true
-  common_tags                    = merge({ ManagedBy = "Terraform/Terragrunt", Project = "aws-free-baseline" }, local.env.locals.environment_tags, { Component = "iam-global" })
+  common_tags                    = merge({ ManagedBy = "Terraform/Terragrunt", Project = "veritrail-aws-baseline" }, local.env.locals.global_tags, { Component = "iam-management" })
 }

@@ -1,12 +1,37 @@
 locals {
-  environment = "global"
-  name_prefix = "free"
+  organization_name = "veritrail"
+  name_prefix       = "veritrail"
 
-  # Optional. Disabled because account aliases are global and user-specific.
+  # These emails must be unique AWS account emails that you control.
+  # Plus-addressing usually works if your mailbox supports it, for example:
+  # aws-dev@veritrail.io, aws-staging@veritrail.io, etc.
+  environment_accounts = {
+    dev = {
+      name  = "veritrail-dev"
+      email = "aws-dev@veritrail.io"
+    }
+    staging = {
+      name  = "veritrail-staging"
+      email = "aws-staging@veritrail.io"
+    }
+    prod = {
+      name  = "veritrail-prod"
+      email = "aws-prod@veritrail.io"
+    }
+  }
+
+  workloads_ou_name             = "workloads"
+  organization_access_role_name = "OrganizationAccountAccessRole"
+
+  # Strong default for a cost-guarded lab. Set false if you intentionally want to allow paid resources later.
+  create_cost_guardrail_scp = true
+  cost_guardrail_scp_name   = "veritrail-cost-guardrail"
+
+  # Optional. Disabled because account aliases are global and only one can exist per account.
   create_account_alias = false
-  account_alias        = "free-baseline-account"
+  account_alias        = "veritrail-management"
 
-  environment_tags = {
-    Environment = "global"
+  global_tags = {
+    Scope = "global"
   }
 }

@@ -22,7 +22,7 @@ BANNED_RESOURCE_TYPES = {
     "aws_db_instance",
     "aws_eks_cluster",
     "aws_eks_node_group",
-    "aws_ecs_cluster",
+    "aws_ecs_service",
     "aws_lambda_function",
     "aws_kms_key",
     "aws_config_configuration_recorder",
@@ -32,6 +32,12 @@ BANNED_RESOURCE_TYPES = {
     "aws_route53_zone",
     "aws_s3_bucket",
     "aws_dynamodb_table",
+    "aws_secretsmanager_secret",
+    "aws_guardduty_detector",
+    "aws_securityhub_account",
+    "aws_inspector2_enabler",
+    "aws_wafv2_web_acl",
+    "aws_cloudfront_distribution",
 }
 
 RESOURCE_RE = re.compile(r'^\s*resource\s+"([^"]+)"\s+"([^"]+)"')
@@ -54,4 +60,4 @@ if findings:
         print(f"- {path}:{line_no} resource {resource_type}.{resource_name}")
     sys.exit(1)
 
-print("No banned paid resource types found. Free-by-default shape is intact.")
+print("No banned paid resource types found. No-paid-resources-by-default shape is intact.")

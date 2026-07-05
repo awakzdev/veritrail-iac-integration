@@ -1,6 +1,6 @@
 locals {
   environment = "staging"
-  name_prefix = "free-staging"
+  name_prefix = "veritrail"
 
   # Regional network settings.
   vpc_cidr            = "10.20.0.0/16"
@@ -10,9 +10,21 @@ locals {
   allowed_ingress_cidrs = []
   allowed_ingress_ports = []
 
-  # Optional. Disabled because account aliases are global and only one can exist.
-  create_account_alias = false
-  account_alias        = "free-staging-account"
+  # Exact names are controlled from Terragrunt.
+  resource_names = {
+    readonly_role                   = "veritrail-staging-readonly"
+    security_audit_role             = "veritrail-staging-security-audit"
+    cost_guardrail_policy           = "veritrail-staging-cost-guardrail"
+    vpc                             = "veritrail-staging-vpc"
+    internet_gateway                = "veritrail-staging-igw"
+    public_route_table              = "veritrail-staging-public-rt"
+    default_network_acl             = "veritrail-staging-default-nacl"
+    default_security_group          = "veritrail-staging-default-locked-down"
+    no_ingress_security_group       = "veritrail-staging-no-ingress"
+    controlled_ingress_security_group = "veritrail-staging-controlled-ingress"
+    s3_gateway_endpoint             = "veritrail-staging-s3-gateway-endpoint"
+    dynamodb_gateway_endpoint       = "veritrail-staging-dynamodb-gateway-endpoint"
+  }
 
   environment_tags = {
     Environment = "staging"

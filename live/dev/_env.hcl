@@ -1,6 +1,6 @@
 locals {
   environment = "dev"
-  name_prefix = "free-dev"
+  name_prefix = "veritrail"
 
   # Regional network settings.
   vpc_cidr            = "10.10.0.0/16"
@@ -10,9 +10,21 @@ locals {
   allowed_ingress_cidrs = []
   allowed_ingress_ports = []
 
-  # Optional. Disabled because account aliases are global and only one can exist.
-  create_account_alias = false
-  account_alias        = "free-dev-account"
+  # Exact names are controlled from Terragrunt.
+  resource_names = {
+    readonly_role                   = "veritrail-dev-readonly"
+    security_audit_role             = "veritrail-dev-security-audit"
+    cost_guardrail_policy           = "veritrail-dev-cost-guardrail"
+    vpc                             = "veritrail-dev-vpc"
+    internet_gateway                = "veritrail-dev-igw"
+    public_route_table              = "veritrail-dev-public-rt"
+    default_network_acl             = "veritrail-dev-default-nacl"
+    default_security_group          = "veritrail-dev-default-locked-down"
+    no_ingress_security_group       = "veritrail-dev-no-ingress"
+    controlled_ingress_security_group = "veritrail-dev-controlled-ingress"
+    s3_gateway_endpoint             = "veritrail-dev-s3-gateway-endpoint"
+    dynamodb_gateway_endpoint       = "veritrail-dev-dynamodb-gateway-endpoint"
+  }
 
   environment_tags = {
     Environment = "dev"

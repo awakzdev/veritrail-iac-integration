@@ -1,16 +1,22 @@
 variable "aws_region" {
-  description = "AWS region, passed by Terragrunt."
+  description = "AWS region."
   type        = string
 }
 
 variable "environment" {
-  description = "Environment name, for example dev, staging, or prod."
+  description = "Environment name."
   type        = string
 }
 
 variable "name_prefix" {
-  description = "Name prefix for all network resources."
+  description = "Fallback name prefix for all network resources when resource_names does not override them."
   type        = string
+}
+
+variable "resource_names" {
+  description = "Exact resource names, usually provided from Terragrunt. Missing keys fall back to generated names."
+  type        = map(string)
+  default     = {}
 }
 
 variable "common_tags" {
@@ -49,7 +55,7 @@ variable "allowed_ingress_ports" {
 }
 
 variable "create_internet_gateway" {
-  description = "Create an Internet Gateway and public route table. Free by itself, but traffic can still cost money."
+  description = "Create an Internet Gateway and public route table. No direct hourly charge by itself, but traffic can still cost money."
   type        = bool
   default     = true
 }

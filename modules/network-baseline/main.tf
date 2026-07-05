@@ -5,7 +5,7 @@ data "aws_availability_zones" "available" {
 locals {
   tags = merge(var.common_tags, {
     Environment = var.environment
-    Module      = "network-free"
+    Module      = "network-baseline"
   })
 
   azs = length(var.availability_zones) > 0 ? var.availability_zones : slice(data.aws_availability_zones.available.names, 0, 2)
@@ -23,6 +23,18 @@ locals {
       }
     ]
   ])
+
+  names = {
+    vpc                               = lookup(var.resource_names, "vpc", "${var.name_prefix}-${var.environment}-vpc")
+    internet_gateway                  = lookup(var.resource_names, "internet_gateway", "${var.name_prefix}-${var.environment}-igw")
+    public_route_table                = lookup(var.resource_names, "public_route_table", "${var.name_prefix}-${var.environment}-public-rt")
+    default_network_acl               = lookup(var.resource_names, "default_network_acl", "${var.name_prefix}-${var.environment}-default-nacl")
+    default_security_group            = lookup(var.resource_names, "default_security_group", "${var.name_prefix}-${var.environment}-default-locked-down")
+    no_ingress_security_group         = lookup(var.resource_names, "no_ingress_security_group", "${var.name_prefix}-${var.environment}-no-ingress")
+    controlled_ingress_security_group = lookup(var.resource_names, "controlled_ingress_security_group", "${var.name_prefix}-${var.environment}-controlled-ingress")
+    s3_gateway_endpoint               = lookup(var.resource_names, "s3_gateway_endpoint", "${var.name_prefix}-${var.environment}-s3-gateway-endpoint")
+    dynamodb_gateway_endpoint         = lookup(var.resource_names, "dynamodb_gateway_endpoint", "${var.name_prefix}-${var.environment}-dynamodb-gateway-endpoint")
+  }
 }
 
 resource "aws_vpc" "this" {
@@ -31,7 +43,7 @@ resource "aws_vpc" "this" {
   enable_dns_hostnames = true
 
   tags = merge(local.tags, {
-    Name = "${var.name_prefix}-${var.environment}-vpc"
+    Name = local.names.vpc
   })
 }
 
@@ -40,7 +52,7 @@ resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
 
   tags = merge(local.tags, {
-    Name = "${var.name_prefix}-${var.environment}-igw"
+    Name = local.names.internet_gateway
   })
 }
 
@@ -55,7 +67,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = false
 
   tags = merge(local.tags, {
-    Name = "${var.name_prefix}-${var.environment}-public-${tonumber(each.key) + 1}"
+    Name = "${local.names.vpc}-public-${tonumber(each.key) + 1}"
     Tier = "public"
   })
 }
@@ -70,7 +82,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = merge(local.tags, {
-    Name = "${var.name_prefix}-${var.environment}-public-rt"
+    Name = local.names.public_route_table
   })
 }
 
@@ -105,7 +117,7 @@ resource "aws_default_network_acl" "default" {
   }
 
   tags = merge(local.tags, {
-    Name = "${var.name_prefix}-${var.environment}-default-nacl"
+    Name = local.names.default_network_acl
   })
 }
 
@@ -113,12 +125,12 @@ resource "aws_default_security_group" "locked_down" {
   vpc_id = aws_vpc.this.id
 
   tags = merge(local.tags, {
-    Name = "${var.name_prefix}-${var.environment}-default-locked-down"
+    Name = local.names.default_security_group
   })
 }
 
 resource "aws_security_group" "no_ingress" {
-  name        = "${var.name_prefix}-${var.environment}-no-ingress"
+  name        = local.names.no_ingress_security_group
   description = "No ingress; HTTPS egress only."
   vpc_id      = aws_vpc.this.id
 
@@ -131,12 +143,12 @@ resource "aws_security_group" "no_ingress" {
   }
 
   tags = merge(local.tags, {
-    Name = "${var.name_prefix}-${var.environment}-no-ingress"
+    Name = local.names.no_ingress_security_group
   })
 }
 
 resource "aws_security_group" "controlled_ingress" {
-  name        = "${var.name_prefix}-${var.environment}-controlled-ingress"
+  name        = local.names.controlled_ingress_security_group
   description = "Ingress only from explicitly configured CIDRs and ports."
   vpc_id      = aws_vpc.this.id
 
@@ -163,7 +175,7 @@ resource "aws_security_group" "controlled_ingress" {
   }
 
   tags = merge(local.tags, {
-    Name = "${var.name_prefix}-${var.environment}-controlled-ingress"
+    Name = local.names.controlled_ingress_security_group
   })
 }
 
@@ -176,7 +188,7 @@ resource "aws_vpc_endpoint" "s3_gateway" {
   route_table_ids   = [aws_route_table.public[0].id]
 
   tags = merge(local.tags, {
-    Name = "${var.name_prefix}-${var.environment}-s3-gateway-endpoint"
+    Name = local.names.s3_gateway_endpoint
   })
 }
 
@@ -189,6 +201,6 @@ resource "aws_vpc_endpoint" "dynamodb_gateway" {
   route_table_ids   = [aws_route_table.public[0].id]
 
   tags = merge(local.tags, {
-    Name = "${var.name_prefix}-${var.environment}-dynamodb-gateway-endpoint"
+    Name = local.names.dynamodb_gateway_endpoint
   })
 }

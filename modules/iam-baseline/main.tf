@@ -10,9 +10,9 @@ locals {
 
   trusted_principals = length(var.trusted_aws_principal_arns) > 0 ? var.trusted_aws_principal_arns : ["arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root"]
 
-  readonly_role_name       = "${var.name_prefix}-${var.environment}-readonly"
-  security_audit_role_name = "${var.name_prefix}-${var.environment}-security-audit"
-  guardrail_policy_name    = "${var.name_prefix}-${var.environment}-cost-guardrail"
+  readonly_role_name       = lookup(var.resource_names, "readonly_role", "${var.name_prefix}-${var.environment}-readonly")
+  security_audit_role_name = lookup(var.resource_names, "security_audit_role", "${var.name_prefix}-${var.environment}-security-audit")
+  guardrail_policy_name    = lookup(var.resource_names, "cost_guardrail_policy", "${var.name_prefix}-${var.environment}-cost-guardrail")
 }
 
 resource "aws_iam_account_password_policy" "this" {
@@ -71,6 +71,7 @@ resource "aws_iam_policy" "cost_guardrail" {
           "eks:CreateCluster",
           "eks:CreateNodegroup",
           "ecs:CreateCluster",
+          "ecs:CreateService",
           "lambda:CreateFunction",
           "dynamodb:CreateTable",
           "s3:CreateBucket",
@@ -79,7 +80,13 @@ resource "aws_iam_policy" "cost_guardrail" {
           "config:PutConfigurationRecorder",
           "config:StartConfigurationRecorder",
           "cloudwatch:PutMetricAlarm",
-          "logs:CreateLogGroup"
+          "logs:CreateLogGroup",
+          "secretsmanager:CreateSecret",
+          "guardduty:CreateDetector",
+          "securityhub:EnableSecurityHub",
+          "inspector2:Enable",
+          "wafv2:CreateWebACL",
+          "cloudfront:CreateDistribution"
         ]
         Resource = "*"
       }

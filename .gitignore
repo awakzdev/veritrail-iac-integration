@@ -8,3 +8,4 @@ crash.*.log
 *.tfvars.json
 .state/
 .DS_Store
+*.sh

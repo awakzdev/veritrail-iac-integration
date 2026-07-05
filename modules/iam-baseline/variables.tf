@@ -4,13 +4,19 @@ variable "aws_region" {
 }
 
 variable "environment" {
-  description = "Environment name, for example dev, staging, or prod."
+  description = "Environment name, for example dev, staging, prod, or management."
   type        = string
 }
 
 variable "name_prefix" {
-  description = "Name prefix for all IAM resources."
+  description = "Fallback name prefix for all IAM resources when resource_names does not override them."
   type        = string
+}
+
+variable "resource_names" {
+  description = "Exact resource names, usually provided from Terragrunt. Missing keys fall back to generated names."
+  type        = map(string)
+  default     = {}
 }
 
 variable "common_tags" {

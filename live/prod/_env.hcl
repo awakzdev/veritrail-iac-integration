@@ -1,6 +1,6 @@
 locals {
   environment = "prod"
-  name_prefix = "free-prod"
+  name_prefix = "veritrail"
 
   # Regional network settings.
   vpc_cidr            = "10.30.0.0/16"
@@ -10,9 +10,21 @@ locals {
   allowed_ingress_cidrs = []
   allowed_ingress_ports = []
 
-  # Optional. Disabled because account aliases are global and only one can exist.
-  create_account_alias = false
-  account_alias        = "free-prod-account"
+  # Exact names are controlled from Terragrunt.
+  resource_names = {
+    readonly_role                   = "veritrail-prod-readonly"
+    security_audit_role             = "veritrail-prod-security-audit"
+    cost_guardrail_policy           = "veritrail-prod-cost-guardrail"
+    vpc                             = "veritrail-prod-vpc"
+    internet_gateway                = "veritrail-prod-igw"
+    public_route_table              = "veritrail-prod-public-rt"
+    default_network_acl             = "veritrail-prod-default-nacl"
+    default_security_group          = "veritrail-prod-default-locked-down"
+    no_ingress_security_group       = "veritrail-prod-no-ingress"
+    controlled_ingress_security_group = "veritrail-prod-controlled-ingress"
+    s3_gateway_endpoint             = "veritrail-prod-s3-gateway-endpoint"
+    dynamodb_gateway_endpoint       = "veritrail-prod-dynamodb-gateway-endpoint"
+  }
 
   environment_tags = {
     Environment = "prod"
