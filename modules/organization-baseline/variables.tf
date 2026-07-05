@@ -62,3 +62,9 @@ variable "enabled_policy_types" {
   type        = list(string)
   default     = ["SERVICE_CONTROL_POLICY"]
 }
+
+variable "aws_service_access_principals" {
+  description = "AWS service principals that must keep trusted access enabled for the Organization. IAM Identity Center needs sso.amazonaws.com."
+  type        = list(string)
+  default     = ["sso.amazonaws.com"]
+}
