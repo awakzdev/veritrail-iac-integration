@@ -10,9 +10,39 @@ dependency "organization" {
   config_path = "../../global/organization"
 }
 
-# Terragrunt assumes the Organization-created role in the member account before
-# running Terraform, so this IAM baseline is created inside the environment account.
-iam_role = dependency.organization.outputs.environment_account_role_arns[local.env.locals.environment]
+# This stack runs Terraform in the environment account by generating a provider
+# that assumes the Organization-created role. Using top-level `iam_role` cannot
+# reference dependency outputs because Terragrunt evaluates it too early.
+generate "provider" {
+  path      = "provider.tf"
+  if_exists = "overwrite_terragrunt"
+
+  contents = <<EOF
+terraform {
+  required_version = ">= 1.6.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+
+  assume_role {
+    role_arn     = "${dependency.organization.outputs.environment_account_role_arns[local.env.locals.environment]}"
+    session_name = "terragrunt-${local.env.locals.environment}-account"
+  }
+
+  default_tags {
+    tags = var.common_tags
+  }
+}
+EOF
+}
 
 terraform {
   source = "../../../modules/iam-baseline"
