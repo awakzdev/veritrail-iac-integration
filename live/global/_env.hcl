@@ -28,8 +28,10 @@ locals {
   cost_guardrail_scp_name   = "veritrail-cost-guardrail"
 
   # IAM Identity Center must be enabled once from the AWS console before applying live/global/identity-center.
-  # This value must match the existing Identity Center username that logs into the AWS access portal.
-  identity_center_admin_user_name  = "Elazar"
+  # Your current Identity Center primary region is us-east-1.
+  # The user name must match the existing Identity Center username that logs into the AWS access portal.
+  identity_center_region          = "us-east-1"
+  identity_center_admin_user_name = "Elazar"
   identity_center_admin_group_name = "VeritrailAdmins"
 
   # Optional. Disabled because account aliases are global and only one can exist per account.
