@@ -54,6 +54,14 @@ resource "aws_organizations_account" "environment" {
 
   lifecycle {
     prevent_destroy = true
+
+    # These fields are creation-time settings. After importing existing member accounts,
+    # the AWS provider may plan a replacement because the API does not return them in
+    # the same shape. Never replace accounts just to reconcile these attributes.
+    ignore_changes = [
+      iam_user_access_to_billing,
+      role_name,
+    ]
   }
 }
 
@@ -105,6 +113,8 @@ resource "aws_organizations_policy" "cost_guardrail" {
   })
 
   tags = local.tags
+
+  depends_on = [aws_organizations_organization.this]
 }
 
 resource "aws_organizations_policy_attachment" "cost_guardrail_workloads" {
