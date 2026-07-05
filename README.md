@@ -123,16 +123,19 @@ Before applying, confirm those addresses can receive mail through your `veritrai
 
 IAM Identity Center must be enabled once from the AWS Console. After that, Terraform/Terragrunt can manage the account access model.
 
-The admin user lookup is configured in:
+The admin user lookup and Identity Center region are configured in:
 
 ```text
 live/global/_env.hcl
 ```
 
 ```hcl
-identity_center_admin_user_name  = "Elazar"
+identity_center_region          = "us-east-1"
+identity_center_admin_user_name = "Elazar"
 identity_center_admin_group_name = "VeritrailAdmins"
 ```
+
+Your current Identity Center primary region is `us-east-1`. If you recreate Identity Center in a different primary region later, edit `identity_center_region` before applying.
 
 The user must already exist in IAM Identity Center. If your portal username is different, edit `identity_center_admin_user_name` before applying `live/global/identity-center`.
 
@@ -207,6 +210,8 @@ Set a region if you do not want the default:
 ```bash
 export AWS_REGION=eu-west-1
 ```
+
+The Identity Center stack overrides the provider region to `identity_center_region`, currently `us-east-1`, because IAM Identity Center is regional.
 
 ---
 
