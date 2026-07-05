@@ -25,6 +25,9 @@ terraform {
 }
 
 inputs = {
+  # IAM Identity Center is regional. Your instance is currently in us-east-1.
+  aws_region = local.env.locals.identity_center_region
+
   admin_user_name  = local.env.locals.identity_center_admin_user_name
   admin_group_name = local.env.locals.identity_center_admin_group_name
 
