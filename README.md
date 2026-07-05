@@ -9,18 +9,20 @@ This repo can create, from one AWS management account:
 - `dev`, `staging`, and `prod` OUs
 - One AWS member account per environment
 - An optional Service Control Policy that denies common bill-starting actions
+- IAM Identity Center permission sets and account assignments after Identity Center is enabled once
 - Environment IAM baselines and networking deployed by assuming into each member account
 
 It creates only AWS resources that usually have no standalone hourly charge:
 
 - AWS Organizations, OUs, accounts, and SCPs
+- IAM Identity Center groups, permission sets, and account assignments
 - IAM password policies, roles, managed policies, and optional account alias
 - VPC, subnets, route tables, network ACLs, Internet Gateway, and security groups
 - Optional S3/DynamoDB gateway VPC endpoints, disabled by default
 
 It intentionally does **not** create NAT Gateways, EC2 instances, EIPs, RDS, EKS, load balancers, KMS keys, AWS Config, CloudWatch log groups, Route 53 hosted zones, S3 buckets, DynamoDB tables, Secrets Manager secrets, GuardDuty, Security Hub, Inspector, WAF, or CloudFront.
 
-> Important: AWS Organizations itself has no standalone service charge, but the management account pays for resources used inside member accounts. This project is a “no paid resources by default” scaffold, not a legal pricing guarantee.
+> Important: AWS Organizations and IAM Identity Center have no standalone service charge, but the management account pays for resources used inside member accounts. This project is a “no paid resources by default” scaffold, not a legal pricing guarantee.
 
 ---
 
@@ -30,12 +32,14 @@ It intentionally does **not** create NAT Gateways, EC2 instances, EIPs, RDS, EKS
 .
 ├── modules
 │   ├── organization-baseline
+│   ├── identity-center-baseline
 │   ├── iam-baseline
 │   └── network-baseline
 ├── live
 │   ├── global
 │   │   ├── _env.hcl
 │   │   ├── organization
+│   │   ├── identity-center
 │   │   └── account
 │   ├── dev
 │   │   ├── _env.hcl
@@ -69,6 +73,10 @@ AWS management account
 │       │   └── veritrail-staging AWS account
 │       └── prod OU
 │           └── veritrail-prod AWS account
+├── IAM Identity Center
+│   ├── VeritrailAdmins group
+│   ├── AdministratorAccess / ReadOnlyAccess / SecurityAudit permission sets
+│   └── AWS access portal assignments for management/dev/staging/prod
 └── management IAM baseline
 ```
 
@@ -111,6 +119,34 @@ Before applying, confirm those addresses can receive mail through your `veritrai
 
 ---
 
+## IAM Identity Center settings
+
+IAM Identity Center must be enabled once from the AWS Console. After that, Terraform/Terragrunt can manage the account access model.
+
+The admin user lookup is configured in:
+
+```text
+live/global/_env.hcl
+```
+
+```hcl
+identity_center_admin_user_name  = "Elazar"
+identity_center_admin_group_name = "VeritrailAdmins"
+```
+
+The user must already exist in IAM Identity Center. If your portal username is different, edit `identity_center_admin_user_name` before applying `live/global/identity-center`.
+
+The identity-center stack creates:
+
+- `VeritrailAdmins` group
+- membership for the existing admin user
+- `AdministratorAccess`, `ReadOnlyAccess`, and `SecurityAudit` permission sets
+- `AdministratorAccess` assignment for management, dev, staging, and prod accounts
+
+After it applies, the AWS access portal should show all assigned accounts.
+
+---
+
 ## Resource names are Terragrunt inputs
 
 Each environment has exact names in its `_env.hcl` file:
@@ -148,6 +184,8 @@ Resource naming is controlled from Terragrunt, not hardcoded inside the modules.
 - AWS CLI authenticated to the AWS account that should become the **management account**
 - Billing/contact setup completed in that management account
 - `veritrail.io` mail catch-all working for the account emails above
+- IAM Identity Center enabled once in the AWS Console before applying `live/global/identity-center`
+- An existing IAM Identity Center user matching `identity_center_admin_user_name`
 
 Use an IAM admin role/user in the management account. Avoid using the AWS root user for normal Terraform work.
 
@@ -186,7 +224,7 @@ This looks for common paid resource types that should not appear in this reposit
 
 ## Apply order
 
-### 1. Create the AWS Organization and environment accounts
+### 1. Create or reconcile the AWS Organization and environment accounts
 
 ```bash
 cd live/global/organization
@@ -196,7 +234,21 @@ terragrunt apply
 
 AWS account creation can take a few minutes. If the next step fails with an STS assume-role error, wait a little and run it again.
 
-### 2. Apply management-account IAM baseline
+If you had to import the Organization/accounts after losing local state, make sure the plan does not replace `aws_organizations_account.environment[*]`. The account resource ignores create-time attributes that otherwise cause replacement after import.
+
+### 2. Apply Identity Center account assignments
+
+Only run this after enabling IAM Identity Center once in the AWS Console and creating the admin user.
+
+```bash
+cd ../identity-center
+terragrunt plan
+terragrunt apply
+```
+
+If the user lookup fails, edit `identity_center_admin_user_name` in `live/global/_env.hcl` to match the IAM Identity Center username shown in the console.
+
+### 3. Apply management-account IAM baseline
 
 ```bash
 cd ../account
@@ -204,7 +256,7 @@ terragrunt plan
 terragrunt apply
 ```
 
-### 3. Apply an environment
+### 4. Apply an environment
 
 ```bash
 cd ../../dev
@@ -235,6 +287,8 @@ OrganizationAccountAccessRole
 ```
 
 You do not manually log in to the new dev/staging/prod accounts for the Terraform flow.
+
+For human console access, use the AWS access portal after the Identity Center stack assigns the `VeritrailAdmins` group to each account.
 
 ---
 
